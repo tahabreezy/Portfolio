@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { trackEvent } from "@/lib/monitor";
 
 const BOOT_MESSAGES = [
   "Loading kernel modules...",
@@ -20,11 +21,10 @@ const ASCII = `
     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
 `;
 
-interface BootProps {
-  onComplete: () => void;
-}
-
-export default function Boot({ onComplete }: BootProps) {
+export default function Boot({ onComplete }: { onComplete: () => void }) {
+  useEffect(() => {
+    trackEvent("VISIT_START");
+  }, []);
   const [status, setStatus] = useState(BOOT_MESSAGES[0]);
   const [progress, setProgress] = useState(0);
   const [fading, setFading] = useState(false);

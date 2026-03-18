@@ -22,6 +22,7 @@ import {
 } from "@/lib/commands";
 import { personal } from "@/lib/data";
 import Boot from "./Boot";
+import { trackEvent } from "@/lib/monitor";
 
 const SHORTCUTS = [
   "help",
@@ -150,6 +151,8 @@ export default function TerminalPortfolio() {
         appendLines([promptLine(fullCmd)]);
         setHistory((h) => [fullCmd, ...h]);
       }
+
+      trackEvent("COMMAND_RUN", { name: cmdLower, args });
 
       switch (cmdLower) {
         case "help":
@@ -337,6 +340,7 @@ export default function TerminalPortfolio() {
               key={cmd}
               onClick={(e) => {
                 e.stopPropagation();
+                trackEvent("SHORTCUT_CLICK", { name: cmd });
                 runCommand(cmd);
               }}
               className="text-[11px] text-terminal-dim cursor-pointer px-2 py-0.5 border border-terminal-border rounded-sm hover:text-terminal-green hover:border-[#2a2a2a] hover:bg-terminal-bg2 transition-all select-none"
