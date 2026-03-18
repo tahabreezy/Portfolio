@@ -61,6 +61,9 @@ export function cmdHelp(): OutputLine[] {
       ["download cv", "Get my resume as PDF"],
       ["social", "All professional links"],
       ["whoami", "Quick identity card"],
+      ["date", "Print current date & time"],
+      ["echo <text>", "Echo text back to terminal"],
+      ["open <1-4>", "Open a project link in new tab"],
       ["ls", "List all sections"],
       ["clear", "Clear the terminal"],
       ["pwd", "Current working directory"],
@@ -260,6 +263,52 @@ export function cmdLs(): OutputLine[] {
 
 export function cmdPwd(): OutputLine[] {
   return [blank(), line(`  /home/taha/portfolio/2025`), blank()];
+}
+
+export function cmdDate(): OutputLine[] {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-GB", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const timeStr = now.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  return [
+    blank(),
+    line(`  <span style='color:#00ff88'>${esc(dateStr)}</span>  <span style='color:#555'>${esc(timeStr)}</span>`),
+    blank(),
+  ];
+}
+
+export function cmdEcho(args: string): OutputLine[] {
+  if (!args.trim()) return [blank(), line(`  <span style='color:#555'>usage: echo <text></span>`), blank()];
+  return [blank(), line(`  <span style='color:#e8e8e8'>${esc(args)}</span>`), blank()];
+}
+
+export function cmdOpen(arg: string): OutputLine[] {
+  const num = parseInt(arg.trim(), 10);
+  const project = projects.find((p) => p.num === String(num).padStart(2, "0"));
+  if (!project) {
+    return [
+      blank(),
+      line(`  <span style='color:#ff5555'>project not found:</span> <span style='color:#666'>${esc(arg.trim())}</span>`),
+      line(`  <span style='color:#555'>Usage: <span style='color:#00ff88'>open <1-${projects.length}></span></span>`),
+      blank(),
+    ];
+  }
+  const url = project.live ?? project.github;
+  if (url) window.open(url, "_blank", "noopener");
+  return [
+    blank(),
+    line(`  <span style='color:#00ff88'>↗</span> Opening <span style='color:#e8e8e8'>${esc(project.title)}</span>`),
+    line(`  <span style='color:#555'>${esc(url ?? "")}</span>`),
+    blank(),
+  ];
 }
 
 export function cmdNotFound(cmd: string): OutputLine[] {

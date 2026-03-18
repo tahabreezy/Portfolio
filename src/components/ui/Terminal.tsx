@@ -13,6 +13,9 @@ import {
   cmdSocial,
   cmdLs,
   cmdPwd,
+  cmdDate,
+  cmdEcho,
+  cmdOpen,
   cmdNotFound,
   welcomeLines,
 } from "@/lib/commands";
@@ -40,6 +43,9 @@ const ALL_COMMANDS = [
   "contact",
   "social",
   "download cv",
+  "date",
+  "echo",
+  "open",
   "ls",
   "pwd",
   "cat about",
@@ -93,11 +99,23 @@ export default function TerminalPortfolio() {
     setLines((prev) => [...prev, ...newLines]);
   }, []);
 
+  const streamLines = useCallback(
+    (linesToStream: OutputLine[], delayMs = 55) => {
+      linesToStream.forEach((l, i) => {
+        setTimeout(() => {
+          setLines((prev) => [...prev, l]);
+        }, i * delayMs);
+      });
+    },
+    []
+  );
+
   const handleBoot = useCallback(() => {
     setBooted(true);
-    appendLines(welcomeLines());
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, [appendLines]);
+    const wl = welcomeLines();
+    streamLines(wl, 55);
+    setTimeout(() => inputRef.current?.focus(), wl.length * 55 + 100);
+  }, [streamLines]);
 
   const runCommand = useCallback(
     (raw: string) => {
@@ -110,33 +128,33 @@ export default function TerminalPortfolio() {
         setHistory((h) => [raw.trim(), ...h]);
       }
 
-      switch (cmd) {
-        case "help":
+      switch (true) {
+        case cmd === "help":
           appendLines(cmdHelp());
           break;
-        case "whoami":
+        case cmd === "whoami":
           appendLines(cmdWhoami());
           break;
-        case "about":
-        case "cat about":
+        case cmd === "about":
+        case cmd === "cat about":
           appendLines(cmdAbout());
           break;
-        case "skills":
+        case cmd === "skills":
           appendLines(cmdSkills());
           break;
-        case "projects":
+        case cmd === "projects":
           appendLines(cmdProjects());
           break;
-        case "experience":
+        case cmd === "experience":
           appendLines(cmdExperience());
           break;
-        case "contact":
+        case cmd === "contact":
           appendLines(cmdContact());
           break;
-        case "social":
+        case cmd === "social":
           appendLines(cmdSocial());
           break;
-        case "download cv":
+        case cmd === "download cv":
           appendLines([
             { id: `dl-${Date.now()}`, html: `  <span style='color:#00ff88'>Fetching</span> cv_taha_azaghar.pdf <span style='color:#555'>...</span>` },
             { id: `dl2-${Date.now()}`, html: `  <span style='color:#00ff88'>✓</span> <span style='color:#555'>Download initiated. Place cv.pdf in /public to enable.</span>` },
@@ -149,16 +167,31 @@ export default function TerminalPortfolio() {
             a.click();
           }
           break;
-        case "ls":
+        case cmd === "date":
+          appendLines(cmdDate());
+          break;
+        case cmd === "echo":
+          appendLines(cmdEcho(""));
+          break;
+        case cmd.startsWith("echo "):
+          appendLines(cmdEcho(raw.trim().slice(5)));
+          break;
+        case cmd === "open":
+          appendLines(cmdOpen(""));
+          break;
+        case cmd.startsWith("open "):
+          appendLines(cmdOpen(cmd.slice(5)));
+          break;
+        case cmd === "ls":
           appendLines(cmdLs());
           break;
-        case "pwd":
+        case cmd === "pwd":
           appendLines(cmdPwd());
           break;
-        case "clear":
+        case cmd === "clear":
           setLines(welcomeLines());
           break;
-        case "":
+        case cmd === "":
           break;
         default:
           appendLines(cmdNotFound(cmd));
@@ -253,12 +286,14 @@ export default function TerminalPortfolio() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent border-none outline-none text-terminal-white font-mono text-sm caret-terminal-green"
+            className="flex-1 bg-transparent border-none outline-none text-terminal-white font-mono text-sm caret-transparent"
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck={false}
+            aria-label="Terminal input"
           />
+          {input === "" && <span className="cursor-blink" />}
         </div>
 
         {/* Quick command shortcuts */}
