@@ -1,3 +1,42 @@
+:root {
+  --terminal-bg: #0a0a0a;
+  --terminal-bg2: #111111;
+  --terminal-bg3: #141414;
+  --terminal-border: #1e1e1e;
+  --terminal-green: #00ff88;
+  --terminal-cyan: #00d4ff;
+  --terminal-yellow: #f5c842;
+  --terminal-red: #ff5555;
+  --terminal-muted: #555555;
+  --terminal-dim: #333333;
+  --terminal-text: #cccccc;
+  --terminal-white: #e8e8e8;
+}
+
+.theme-amber {
+  --terminal-green: #ffb000;
+  --terminal-cyan: #ffcc00;
+  --terminal-yellow: #ff9900;
+  --terminal-text: #ffb000;
+  --terminal-white: #ffcc00;
+}
+
+.theme-modern {
+  --terminal-green: #00d4ff;
+  --terminal-cyan: #0088ff;
+  --terminal-yellow: #00ff88;
+  --terminal-text: #a0e0ff;
+  --terminal-white: #ffffff;
+}
+
+.theme-dark {
+  --terminal-green: #ffffff;
+  --terminal-cyan: #cccccc;
+  --terminal-yellow: #999999;
+  --terminal-text: #bbbbbb;
+  --terminal-white: #ffffff;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -53,9 +92,8 @@ body::after {
 .cursor-blink {
   display: inline-block;
   width: 8px;
-  height: 14px;
-  background: #00ff88;
-  vertical-align: middle;
+  height: 18px;
+  background-color: var(--terminal-green);
   margin-left: 1px;
   animation: blink 1s step-end infinite;
 }

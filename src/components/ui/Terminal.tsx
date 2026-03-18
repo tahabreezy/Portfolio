@@ -16,6 +16,7 @@ import {
   cmdDate,
   cmdEcho,
   cmdOpen,
+  cmdTheme,
   cmdNotFound,
   welcomeLines,
 } from "@/lib/commands";
@@ -48,6 +49,7 @@ const ALL_COMMANDS = [
   "open",
   "ls",
   "pwd",
+  "theme",
   "cat about",
   "clear",
 ];
@@ -95,6 +97,23 @@ export default function TerminalPortfolio() {
   // Focus input on click
   const focusInput = useCallback(() => inputRef.current?.focus(), []);
 
+  const [theme, setTheme] = useState<string>("matrix");
+  const [mounted, setMounted] = useState(false);
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("terminal-theme");
+    if (savedTheme) setTheme(savedTheme);
+    setMounted(true);
+  }, []);
+
+  // Save theme to localStorage
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem("terminal-theme", theme);
+    }
+  }, [theme, mounted]);
+
   const appendLines = useCallback((newLines: OutputLine[]) => {
     setLines((prev) => [...prev, ...newLines]);
   }, []);
@@ -119,85 +138,90 @@ export default function TerminalPortfolio() {
 
   const runCommand = useCallback(
     (raw: string) => {
-      const cmd = raw.trim().toLowerCase();
+      const fullCmd = raw.trim();
+      const [cmd, ...argsArr] = fullCmd.split(" ");
+      const args = argsArr.join(" ");
+      const cmdLower = cmd.toLowerCase();
+
       setInput("");
       setHistIdx(-1);
 
-      if (raw.trim()) {
-        appendLines([promptLine(raw.trim())]);
-        setHistory((h) => [raw.trim(), ...h]);
+      if (fullCmd) {
+        appendLines([promptLine(fullCmd)]);
+        setHistory((h) => [fullCmd, ...h]);
       }
 
-      switch (true) {
-        case cmd === "help":
+      switch (cmdLower) {
+        case "help":
           appendLines(cmdHelp());
           break;
-        case cmd === "whoami":
+        case "whoami":
           appendLines(cmdWhoami());
           break;
-        case cmd === "about":
-        case cmd === "cat about":
+        case "about":
           appendLines(cmdAbout());
           break;
-        case cmd === "skills":
+        case "skills":
           appendLines(cmdSkills());
           break;
-        case cmd === "projects":
+        case "projects":
           appendLines(cmdProjects());
           break;
-        case cmd === "experience":
+        case "experience":
           appendLines(cmdExperience());
           break;
-        case cmd === "contact":
+        case "contact":
           appendLines(cmdContact());
           break;
-        case cmd === "social":
+        case "social":
           appendLines(cmdSocial());
           break;
-        case cmd === "download cv":
-          appendLines([
-            { id: `dl-${Date.now()}`, html: `  <span style='color:#00ff88'>Fetching</span> cv_taha_azaghar.pdf <span style='color:#555'>...</span>` },
-            { id: `dl2-${Date.now()}`, html: `  <span style='color:#00ff88'>✓</span> <span style='color:#555'>Download initiated. Place cv.pdf in /public to enable.</span>` },
-            { id: `dl3-${Date.now()}`, html: `` },
-          ]);
-          {
+        case "download":
+          if (args.toLowerCase() === "cv") {
             const a = document.createElement("a");
             a.href = personal.cv;
             a.download = "cv_taha_azaghar.pdf";
             a.click();
+            appendLines([
+              { id: `dl-${Date.now()}`, html: `  <span style='color:var(--terminal-green)'>Fetching</span> cv_taha_azaghar.pdf <span style='color:var(--terminal-muted)'>...</span>` },
+              { id: `dl2-${Date.now()}`, html: `  <span style='color:var(--terminal-green)'>✓</span> <span style='color:var(--terminal-muted)'>Download initiated.</span>` },
+            ]);
+          } else {
+            appendLines(cmdNotFound(fullCmd));
           }
           break;
-        case cmd === "date":
+        case "theme":
+          const themeArgs = args.trim().toLowerCase();
+          if (["matrix", "amber", "modern", "dark"].includes(themeArgs)) {
+            setTheme(themeArgs);
+          }
+          appendLines(cmdTheme(args));
+          break;
+        case "date":
           appendLines(cmdDate());
           break;
-        case cmd === "echo":
-          appendLines(cmdEcho(""));
+        case "echo":
+          appendLines(cmdEcho(args));
           break;
-        case cmd.startsWith("echo "):
-          appendLines(cmdEcho(raw.trim().slice(5)));
+        case "open":
+          appendLines(cmdOpen(args));
           break;
-        case cmd === "open":
-          appendLines(cmdOpen(""));
-          break;
-        case cmd.startsWith("open "):
-          appendLines(cmdOpen(cmd.slice(5)));
-          break;
-        case cmd === "ls":
+        case "ls":
           appendLines(cmdLs());
           break;
-        case cmd === "pwd":
+        case "pwd":
           appendLines(cmdPwd());
           break;
-        case cmd === "clear":
-          setLines(welcomeLines());
+        case "clear":
+          setLines([]);
           break;
-        case cmd === "":
+        case "":
           break;
         default:
-          appendLines(cmdNotFound(cmd));
+          appendLines(cmdNotFound(fullCmd));
       }
     },
-    [appendLines]
+    [appendLines, setTheme]
   );
 
   const handleKeyDown = useCallback(
@@ -231,7 +255,7 @@ export default function TerminalPortfolio() {
         if (match) setInput(match);
       } else if (e.key === "l" && e.ctrlKey) {
         e.preventDefault();
-        setLines(welcomeLines());
+        setLines([]);
       }
     },
     [input, history, runCommand]
@@ -242,7 +266,7 @@ export default function TerminalPortfolio() {
       {!booted && <Boot onComplete={handleBoot} />}
 
       <div
-        className="flex flex-col w-screen h-screen bg-terminal-bg"
+        className={`flex flex-col w-screen h-screen bg-terminal-bg theme-${theme}`}
         onClick={focusInput}
       >
         {/* Titlebar */}
