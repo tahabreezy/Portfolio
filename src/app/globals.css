@@ -118,6 +118,19 @@ body::after {
 @media (max-width: 640px) {
   html,
   body {
+    font-size: 13px; /* Slightly larger for easier reading on small screens */
+  }
+
+  /* Responsive padding override */
+  .terminal-px {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  html,
+  body {
     font-size: 12px;
   }
 }

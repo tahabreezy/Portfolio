@@ -261,7 +261,7 @@ export default function TerminalPortfolio() {
         {/* Terminal output */}
         <div
           ref={termRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden px-7 pt-5 pb-2 terminal-scroll"
+          className="flex-1 overflow-y-auto overflow-x-hidden terminal-px pt-5 pb-2 terminal-scroll"
         >
           {lines.map((l) => (
             <div
@@ -273,7 +273,7 @@ export default function TerminalPortfolio() {
         </div>
 
         {/* Input row */}
-        <div className="flex-shrink-0 flex items-center px-7 py-3 border-t border-terminal-border bg-terminal-bg">
+        <div className="flex-shrink-0 flex items-center terminal-px py-3 border-t border-terminal-border bg-terminal-bg">
           <div className="flex items-center">
             <span className="text-terminal-green font-mono text-sm whitespace-nowrap">
               taha@portfolio
@@ -307,7 +307,7 @@ export default function TerminalPortfolio() {
         </div>
 
         {/* Quick command shortcuts */}
-        <div className="flex-shrink-0 flex flex-wrap gap-2 px-7 py-2 border-t border-terminal-border bg-[#0c0c0c]">
+        <div className="flex-shrink-0 flex flex-wrap justify-center gap-2 terminal-px py-2 border-t border-terminal-border bg-[#0c0c0c]">
           {SHORTCUTS.map((cmd) => (
             <button
               key={cmd}
