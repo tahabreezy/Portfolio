@@ -274,26 +274,36 @@ export default function TerminalPortfolio() {
 
         {/* Input row */}
         <div className="flex-shrink-0 flex items-center px-7 py-3 border-t border-terminal-border bg-terminal-bg">
-          <span className="text-terminal-green font-mono text-sm whitespace-nowrap">
-            taha@portfolio
-          </span>
-          <span className="text-terminal-dim mx-1">:</span>
-          <span className="text-terminal-green font-mono text-sm">~</span>
-          <span className="text-terminal-dim mx-1">$</span>
-          <span className="ml-1" />
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent border-none outline-none text-terminal-white font-mono text-sm caret-transparent"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            aria-label="Terminal input"
-          />
-          {input === "" && <span className="cursor-blink" />}
+          <div className="flex items-center">
+            <span className="text-terminal-green font-mono text-sm whitespace-nowrap">
+              taha@portfolio
+            </span>
+            <span className="text-terminal-dim mx-1">:</span>
+            <span className="text-terminal-green font-mono text-sm">~</span>
+            <span className="text-terminal-dim mx-1">$</span>
+          </div>
+
+          <div className="flex-1 relative flex items-center ml-2 overflow-hidden">
+            {/* Visual Output */}
+            <span className="text-terminal-white font-mono text-sm whitespace-pre">
+              {input}
+            </span>
+            <span className="cursor-blink" />
+
+            {/* Hidden Input */}
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-transparent caret-transparent font-mono text-sm"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              aria-label="Terminal input"
+            />
+          </div>
         </div>
 
         {/* Quick command shortcuts */}
