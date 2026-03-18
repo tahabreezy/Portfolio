@@ -1,9 +1,11 @@
-import { personal, skills, projects, experience } from "./data";
+import { personal, translations } from "./data";
 
 export type OutputLine = {
   id: string;
   html: string;
 };
+
+export type Lang = "en" | "fr";
 
 let idCounter = 0;
 function id() {
@@ -47,27 +49,29 @@ const colorMap = {
 
 // ─── COMMANDS ────────────────────────────────────────────────────────────────
 
-export function cmdHelp(): OutputLine[] {
+export function cmdHelp(lang: Lang = "en"): OutputLine[] {
+  const isEn = lang === "en";
   return [
     blank(),
-    line(`<span style='color:var(--terminal-yellow)'>┌─ COMMANDS ───────────────────────────────────────────────────┐</span>`),
+    line(`<span style='color:var(--terminal-yellow)'>┌─ ${isEn ? "COMMANDS" : "COMMANDES"} ───────────────────────────────────────────────────┐</span>`),
     line(`<span style='color:var(--terminal-yellow)'>│</span>`),
     ...[
-      ["about", "Who I am & what I do"],
-      ["skills", "Tech stack & proficiency levels"],
-      ["projects", "4 featured projects with details"],
-      ["experience", "Work history & education"],
-      ["contact", "Email, LinkedIn, GitHub, phone"],
-      ["download cv", "Get my resume as PDF"],
-      ["theme <name>", "Switch theme (matrix, amber, modern, dark)"],
-      ["social", "All professional links"],
-      ["whoami", "Quick identity card"],
-      ["date", "Print current date & time"],
-      ["echo <text>", "Echo text back to terminal"],
-      ["open <1-4>", "Open a project link in new tab"],
-      ["ls", "List all sections"],
-      ["clear", "Clear the terminal"],
-      ["pwd", "Current working directory"],
+      ["about", isEn ? "Who I am & what I do" : "Qui je suis et ce que je fais"],
+      ["skills", isEn ? "Tech stack & proficiency levels" : "Stack technique et niveaux"],
+      ["projects", isEn ? "4 featured projects with details" : "4 projets phares détaillés"],
+      ["experience", isEn ? "Work history & education" : "Expérience et éducation"],
+      ["contact", isEn ? "Email, LinkedIn, GitHub, phone" : "Email, LinkedIn, GitHub, tél"],
+      ["download cv", isEn ? "Get my resume as PDF" : "Télécharger mon CV (PDF)"],
+      ["theme <name>", isEn ? "Switch theme (matrix, amber, modern, dark)" : "Changer de thème"],
+      ["lang <en|fr>", isEn ? "Switch language to English or French" : "Changer la langue (en|fr)"],
+      ["social", isEn ? "All professional links" : "Tous les liens sociaux"],
+      ["whoami", isEn ? "Quick identity card" : "Carte d'identité rapide"],
+      ["date", isEn ? "Print current date & time" : "Afficher la date et l'heure"],
+      ["echo <text>", isEn ? "Echo text back to terminal" : "Afficher du texte"],
+      ["open <1-4>", isEn ? "Open a project link in new tab" : "Ouvrir un lien projet"],
+      ["ls", isEn ? "List all sections" : "Lister les sections"],
+      ["clear", isEn ? "Clear the terminal" : "Effacer le terminal"],
+      ["pwd", isEn ? "Current working directory" : "Répertoire actuel"],
     ].map(([c, d]) =>
       line(
         `<span style='color:var(--terminal-yellow)'>│</span>  <span style='color:var(--terminal-cyan);display:inline-block;width:130px'>${c}</span><span style='color:var(--terminal-muted)'>${d}</span>`
@@ -79,54 +83,48 @@ export function cmdHelp(): OutputLine[] {
   ];
 }
 
-export function cmdWhoami(): OutputLine[] {
+export function cmdWhoami(lang: Lang = "en"): OutputLine[] {
+  const data = translations[lang].personal;
   return [
     blank(),
-    line(`  <span style='color:var(--terminal-green)'>●</span> <span style='color:var(--terminal-white);font-weight:700'>${esc(personal.name)}</span>`),
-    line(`  <span style='color:var(--terminal-muted)'>│</span> ${esc(personal.title)}`),
-    line(`  <span style='color:var(--terminal-muted)'>│</span> M.Sc. CS — EMSI Casablanca, 2025`),
-    line(`  <span style='color:var(--terminal-muted)'>│</span> Location  <span style='color:var(--terminal-cyan)'>${esc(personal.location)}</span>`),
-    line(`  <span style='color:var(--terminal-muted)'>│</span> Status    <span style='color:var(--terminal-green)'>● Open to opportunities</span>`),
-    line(`  <span style='color:var(--terminal-muted)'>└</span> Remote    <span style='color:var(--terminal-yellow)'>Available</span>`),
+    line(`  <span style='color:var(--terminal-green)'>●</span> <span style='color:var(--terminal-white);font-weight:700'>${esc(data.name)}</span>`),
+    line(`  <span style='color:var(--terminal-muted)'>│</span> ${esc(data.title)}`),
+    line(`  <span style='color:var(--terminal-muted)'>│</span> ${lang === "en" ? "M.Sc. CS — EMSI Casablanca, 2025" : "Master en Informatique — EMSI, 2025"}`),
+    line(`  <span style='color:var(--terminal-muted)'>│</span> Location  <span style='color:var(--terminal-cyan)'>${esc(data.location)}</span>`),
+    line(`  <span style='color:var(--terminal-muted)'>│</span> Status    <span style='color:var(--terminal-green)'>● ${lang === "en" ? "Open to opportunities" : "Ouvert aux opportunités"}</span>`),
+    line(`  <span style='color:var(--terminal-muted)'>└</span> Remote    <span style='color:var(--terminal-yellow)'>${lang === "en" ? "Available" : "Disponible"}</span>`),
     blank(),
   ];
 }
 
-export function cmdAbout(): OutputLine[] {
+export function cmdAbout(lang: Lang = "en"): OutputLine[] {
+  const data = translations[lang].personal;
   return [
     blank(),
     line(`<span style='color:var(--terminal-cyan)'>╔══════════════════════════════════════════════════════════════╗</span>`),
     line(
-      `<span style='color:var(--terminal-cyan)'>║</span>  <span style='color:var(--terminal-yellow);font-weight:700'>${esc(personal.name).toUpperCase()}</span>  <span style='color:var(--terminal-muted)'>// ${esc(personal.title)}</span>                  <span style='color:var(--terminal-cyan)'>║</span>`
+      `<span style='color:var(--terminal-cyan)'>║</span>  <span style='color:var(--terminal-yellow);font-weight:700'>${esc(data.name).toUpperCase()}</span>  <span style='color:var(--terminal-muted)'>// ${esc(data.title)}</span>                  <span style='color:var(--terminal-cyan)'>║</span>`
     ),
     line(`<span style='color:var(--terminal-cyan)'>╚══════════════════════════════════════════════════════════════╝</span>`),
     blank(),
-    line(`  I build systems where AI agents collaborate, debate, and act.`),
-    line(`  My focus: <span style='color:var(--terminal-green)'>LLM orchestration</span>, <span style='color:var(--terminal-cyan)'>workflow automation</span>,`),
-    line(`  and <span style='color:var(--terminal-yellow)'>scalable backend engineering</span>.`),
+    ...data.bio.map((b) => line(`  ${esc(b)}`)),
     blank(),
-    line(`  At <span style='color:var(--terminal-white)'>Brain Gen Technology</span> I designed &amp; shipped a production`),
-    line(`  multi-agent trading platform — 20+ APIs, autonomous agents,`),
-    line(`  zero human intervention at runtime.`),
-    blank(),
-    line(
-      `  Targeting roles in <span style='color:var(--terminal-cyan)'>AI/ML Engineering</span>, <span style='color:var(--terminal-cyan)'>Automation</span>,`
-    ),
-    line(`  <span style='color:var(--terminal-cyan)'>Backend</span>, and <span style='color:var(--terminal-cyan)'>Data Engineering</span>.`),
+    line(`  <span style='color:var(--terminal-white)'>${data.location}</span>`),
     blank(),
     line(`  <span style='color:var(--terminal-dim)'>─────────────────────────────────────────────────────────────</span>`),
     line(
-      `  <span style='color:var(--terminal-muted)'>Try:</span> <span style='color:var(--terminal-green)'>projects</span> <span style='color:var(--terminal-muted)'>·</span> <span style='color:var(--terminal-green)'>skills</span> <span style='color:var(--terminal-muted)'>·</span> <span style='color:var(--terminal-green)'>contact</span>`
+      `  <span style='color:var(--terminal-muted)'>${lang === "en" ? "Try" : "Essayer"}:</span> <span style='color:var(--terminal-green)'>projects</span> <span style='color:var(--terminal-muted)'>·</span> <span style='color:var(--terminal-green)'>skills</span> <span style='color:var(--terminal-muted)'>·</span> <span style='color:var(--terminal-green)'>contact</span>`
     ),
     blank(),
   ];
 }
 
-export function cmdSkills(): OutputLine[] {
-  const lines: OutputLine[] = [blank(), line(`<span style='color:var(--terminal-yellow)'>// SKILLS & STACK</span>`), blank()];
+export function cmdSkills(lang: Lang = "en"): OutputLine[] {
+  const data = translations[lang].skills;
+  const lines: OutputLine[] = [blank(), line(`<span style='color:var(--terminal-yellow)'>// ${lang === "en" ? "SKILLS & STACK" : "COMPÉTENCES & STACK"}</span>`), blank()];
 
-  skills.forEach((cat) => {
-    const c = colorMap[cat.color] || colorMap.muted;
+  data.forEach((cat) => {
+    const c = colorMap[cat.color as keyof typeof colorMap] || colorMap.muted;
     lines.push(line(`  <span ${c} style='font-weight:700'>${esc(cat.category)}</span>`));
     cat.items.forEach(({ name, level }) => {
       const filled = Math.round(level / 5);
@@ -143,11 +141,12 @@ export function cmdSkills(): OutputLine[] {
   return lines;
 }
 
-export function cmdProjects(): OutputLine[] {
-  const lines: OutputLine[] = [blank(), line(`<span style='color:var(--terminal-yellow)'>// FEATURED PROJECTS</span>`), blank()];
+export function cmdProjects(lang: Lang = "en"): OutputLine[] {
+  const data = translations[lang].projects;
+  const lines: OutputLine[] = [blank(), line(`<span style='color:var(--terminal-yellow)'>// ${lang === "en" ? "FEATURED PROJECTS" : "PROJETS PHARES"}</span>`), blank()];
 
-  projects.forEach((p) => {
-    const sc = colorMap[p.statusColor] || colorMap.muted;
+  data.forEach((p) => {
+    const sc = colorMap[p.statusColor as keyof typeof colorMap] || colorMap.muted;
     lines.push(
       line(
         `  <span style='color:var(--terminal-muted)'>[${p.num}]</span> <span ${sc} style='font-weight:700'>${esc(p.title)}</span>  <span style='font-size:11px;border:1px solid var(--terminal-border);padding:1px 5px;color:var(--terminal-dim)'>${p.status}</span>`
@@ -169,7 +168,7 @@ export function cmdProjects(): OutputLine[] {
     if (p.github) {
       lines.push(
         line(
-          `       <span style='color:var(--terminal-muted)'>link  :</span> <a href='${p.github}' target='_blank' rel='noopener' style='color:var(--terminal-cyan);text-decoration:underline'>${esc(p.github)}</a>`
+          `       <span style='color:var(--terminal-muted)'>link  :</span> <a href='${p.github}' target='_blank' rel='noopener' style='color:var(--terminal-cyan)'>${esc(p.github)}</a>`
         )
       );
     }
@@ -181,14 +180,15 @@ export function cmdProjects(): OutputLine[] {
   return lines;
 }
 
-export function cmdExperience(): OutputLine[] {
+export function cmdExperience(lang: Lang = "en"): OutputLine[] {
+  const data = translations[lang].experience;
   const lines: OutputLine[] = [
     blank(),
-    line(`<span style='color:var(--terminal-yellow)'>// EXPERIENCE & EDUCATION</span>`),
+    line(`<span style='color:var(--terminal-yellow)'>// ${lang === "en" ? "EXPERIENCE & EDUCATION" : "EXPÉRIENCE & ÉDUCATION"}</span>`),
     blank(),
   ];
 
-  experience.forEach((item) => {
+  data.forEach((item) => {
     const bc = item.type === "work" ? "style='color:var(--terminal-green)'" : "style='color:var(--terminal-cyan)'";
     const borderColor = item.type === "work" ? "var(--terminal-green)" : "var(--terminal-cyan)";
     lines.push(
@@ -207,7 +207,8 @@ export function cmdExperience(): OutputLine[] {
   return lines;
 }
 
-export function cmdContact(): OutputLine[] {
+export function cmdContact(lang: Lang = "en"): OutputLine[] {
+  const isEn = lang === "en";
   return [
     blank(),
     line(`<span style='color:var(--terminal-yellow)'>// CONTACT</span>`),
@@ -223,12 +224,12 @@ export function cmdContact(): OutputLine[] {
     ),
     line(`  <span style='color:var(--terminal-muted)'>phone    →</span>  <span style='color:var(--terminal-muted)'>${esc(personal.phone)}</span>`),
     blank(),
-    line(`  <span style='color:var(--terminal-muted)'>status   →</span>  <span style='color:var(--terminal-green)'>● Actively looking for opportunities</span>`),
+    line(`  <span style='color:var(--terminal-muted)'>status   →</span>  <span style='color:var(--terminal-green)'>● ${isEn ? "Actively looking for opportunities" : "Recherche activement des opportunités"}</span>`),
     line(
-      `  <span style='color:var(--terminal-muted)'>location →</span>  <span style='color:var(--terminal-muted)'>${esc(personal.location)} · Remote-friendly</span>`
+      `  <span style='color:var(--terminal-muted)'>location →</span>  <span style='color:var(--terminal-muted)'>${esc(translations[lang].personal.location)} · ${isEn ? "Remote-friendly" : "Ouvert au télétravail"}</span>`
     ),
     blank(),
-    line(`  <span style='color:var(--terminal-dim)'>I respond to emails within 24h. Let's build something.</span>`),
+    line(`  <span style='color:var(--terminal-dim)'>${isEn ? "I respond to emails within 24h. Let's build something." : "Je réponds aux emails sous 24h. Construisons quelque chose."}</span>`),
     blank(),
   ];
 }
@@ -291,37 +292,42 @@ export function cmdEcho(args: string): OutputLine[] {
   return [blank(), line(`  <span style='color:var(--terminal-white)'>${esc(args)}</span>`), blank()];
 }
 
-export function cmdOpen(arg: string): OutputLine[] {
-  const num = parseInt(arg.trim(), 10);
-  const project = projects.find((p) => p.num === String(num).padStart(2, "0"));
+export function cmdOpen(arg: string, lang: Lang = "en"): OutputLine[] {
+  const isEn = lang === "en";
+  const numArg = arg.trim();
+  const num = parseInt(numArg, 10);
+  const data = translations[lang].projects;
+  const project = data.find((p) => p.num === String(num).padStart(2, "0"));
+
   if (!project) {
     return [
       blank(),
-      line(`  <span style='color:var(--terminal-red)'>project not found:</span> <span style='color:var(--terminal-dim)'>${esc(arg.trim())}</span>`),
-      line(`  <span style='color:var(--terminal-muted)'>Usage: <span style='color:var(--terminal-green)'>open &lt;1-${projects.length}&gt;</span></span>`),
+      line(`  <span style='color:var(--terminal-red)'>${isEn ? "project not found" : "projet non trouvé"}:</span> <span style='color:var(--terminal-dim)'>${esc(numArg)}</span>`),
+      line(`  <span style='color:var(--terminal-muted)'>${isEn ? "Usage" : "Usage"}: <span style='color:var(--terminal-green)'>open &lt;1-${data.length}&gt;</span></span>`),
       blank(),
     ];
   }
-  const url = project.live ?? project.github;
+  const url = project.github;
   if (url) window.open(url, "_blank", "noopener");
   return [
     blank(),
-    line(`  <span style='color:var(--terminal-green)'>↗</span> Opening <span style='color:var(--terminal-white)'>${esc(project.title)}</span>`),
+    line(`  <span style='color:var(--terminal-green)'>↗</span> ${isEn ? "Opening" : "Ouverture de"} <span style='color:var(--terminal-white)'>${esc(project.title)}</span>`),
     line(`  <span style='color:var(--terminal-muted)'>${esc(url ?? "")}</span>`),
     blank(),
   ];
 }
 
-export function cmdTheme(arg: string): OutputLine[] {
+export function cmdTheme(arg: string, currentTheme: string, lang: Lang = "en"): OutputLine[] {
+  const isEn = lang === "en";
   const themes = ["matrix", "amber", "modern", "dark"];
   const val = arg.trim().toLowerCase();
 
   if (!val) {
     return [
       blank(),
-      line(`<span style='color:var(--terminal-yellow)'>// THEMES</span>`),
-      line(`  Available: <span style='color:var(--terminal-green)'>${themes.join(", ")}</span>`),
-      line(`  Usage: <span style='color:var(--terminal-cyan)'>theme &lt;name&gt;</span>`),
+      line(`<span style='color:var(--terminal-yellow)'>// ${isEn ? "THEMES" : "THÈMES"}</span>`),
+      line(`  ${isEn ? "Available" : "Disponibles"}: <span style='color:var(--terminal-green)'>${themes.join(", ")}</span>`),
+      line(`  ${isEn ? "Usage" : "Usage"}: <span style='color:var(--terminal-cyan)'>theme &lt;name&gt;</span>`),
       blank(),
     ];
   }
@@ -329,33 +335,73 @@ export function cmdTheme(arg: string): OutputLine[] {
   if (!themes.includes(val)) {
     return [
       blank(),
-      line(`  <span style='color:var(--terminal-red)'>Invalid theme:</span> ${esc(val)}`),
-      line(`  Try: <span style='color:var(--terminal-green)'>${themes.join(", ")}</span>`),
+      line(`  <span style='color:var(--terminal-red)'>${isEn ? "Invalid theme" : "Thème invalide"}:</span> ${esc(val)}`),
+      line(`  ${isEn ? "Try" : "Essayer"}: <span style='color:var(--terminal-green)'>${themes.join(", ")}</span>`),
       blank(),
     ];
   }
 
   return [
     blank(),
-    line(`  <span style='color:var(--terminal-green)'>✓</span> Theme set to <span style='color:var(--terminal-white)'>${esc(val)}</span>`),
+    line(`  <span style='color:var(--terminal-green)'>✓</span> ${isEn ? "Theme set to" : "Thème réglé sur"} <span style='color:var(--terminal-white)'>${esc(val)}</span>`),
     blank(),
   ];
 }
 
-export function cmdNotFound(cmd: string): OutputLine[] {
+export function cmdLang(arg: string, currentLang: Lang): { output: OutputLine[]; newLang?: Lang } {
+  const isEn = currentLang === "en";
+  const val = arg.trim().toLowerCase();
+
+  if (!val) {
+    return {
+      output: [
+        blank(),
+        line(`<span style='color:var(--terminal-yellow)'>// LANGUAGE / LANGUE</span>`),
+        line(`  ${isEn ? "Current" : "Actuelle"}: <span style='color:var(--terminal-green)'>${currentLang}</span>`),
+        line(`  Usage: <span style='color:var(--terminal-cyan)'>lang &lt;en|fr&gt;</span>`),
+        blank(),
+      ],
+    };
+  }
+
+  if (val === "en" || val === "fr") {
+    return {
+      output: [
+        blank(),
+        line(`  <span style='color:var(--terminal-green)'>✓</span> ${val === "en" ? "Language set to English" : "Langue réglée sur Français"}`),
+        blank(),
+      ],
+      newLang: val as Lang,
+    };
+  }
+
+  return {
+    output: [
+      blank(),
+      line(`  <span style='color:var(--terminal-red)'>Error:</span> ${val} ${isEn ? "is not supported" : "n'est pas supporté"}.`),
+      line(`  ${isEn ? "Try" : "Essayer"}: <span style='color:var(--terminal-green)'>en, fr</span>`),
+      blank(),
+    ],
+  };
+}
+
+export function cmdNotFound(cmd: string, lang: Lang = "en"): OutputLine[] {
+  const isEn = lang === "en";
   return [
     blank(),
     line(
-      `  <span style='color:var(--terminal-red)'>command not found:</span> <span style='color:var(--terminal-dim)'>${esc(cmd)}</span>`
+      `  <span style='color:var(--terminal-red)'>${isEn ? "command not found" : "commande non trouvée"}:</span> <span style='color:var(--terminal-dim)'>${esc(cmd)}</span>`
     ),
     line(
-      `  <span style='color:var(--terminal-muted)'>Type</span> <span style='color:var(--terminal-green)'>help</span> <span style='color:var(--terminal-muted)'>to see available commands.</span>`
+      `  <span style='color:var(--terminal-muted)'>${isEn ? "Type" : "Tapez"}</span> <span style='color:var(--terminal-green)'>help</span> <span style='color:var(--terminal-muted)'>${isEn ? "to see available commands" : "pour voir les commandes"}</span>`
     ),
     blank(),
   ];
 }
 
-export function welcomeLines(): OutputLine[] {
+export function welcomeLines(lang: Lang = "en"): OutputLine[] {
+  const data = translations[lang].personal;
+  const isEn = lang === "en";
   const now = new Date();
   return [
     line(
@@ -363,16 +409,16 @@ export function welcomeLines(): OutputLine[] {
     ),
     blank(),
     line(
-      `  <span style='color:var(--terminal-white);font-weight:700'>${esc(personal.name)}</span>  <span style='color:var(--terminal-muted)'>—</span>  <span style='color:var(--terminal-muted)'>${esc(personal.title)}</span>`
+      `  <span style='color:var(--terminal-white);font-weight:700'>${esc(data.name)}</span>  <span style='color:var(--terminal-muted)'>—</span>  <span style='color:var(--terminal-muted)'>${esc(data.title)}</span>`
     ),
-    line(`  <span style='color:var(--terminal-muted)'>${esc(personal.location)}  ·  Open to remote  ·  Available now</span>`),
+    line(`  <span style='color:var(--terminal-muted)'>${esc(data.location)}  ·  ${isEn ? "Open to remote" : "Ouvert au télétravail"}  ·  ${isEn ? "Available now" : "Disponible actuellement"}</span>`),
     blank(),
     line(
-      `  <span style='color:var(--terminal-muted)'>Last login: ${now.toDateString()} ${now.toLocaleTimeString()}</span>`
+      `  <span style='color:var(--terminal-muted)'>${isEn ? "Last login" : "Dernière connexion"}: ${now.toDateString()} ${now.toLocaleTimeString()}</span>`
     ),
     blank(),
     line(
-      `  Type <span style='color:var(--terminal-green)'>help</span> for commands. Use <span style='color:var(--terminal-yellow)'>↑ ↓</span> for history. <span style='color:var(--terminal-yellow)'>Tab</span> to autocomplete.`
+      `  ${isEn ? "Type" : "Tapez"} <span style='color:var(--terminal-green)'>help</span> ${isEn ? "for commands" : "pour les commandes"}. ${isEn ? "Use" : "Utilisez"} <span style='color:var(--terminal-yellow)'>↑ ↓</span> ${isEn ? "for history" : "pour l'historique"}. <span style='color:var(--terminal-yellow)'>Tab</span> ${isEn ? "to autocomplete" : "pour l'autocomplétion"}.`
     ),
     blank(),
     line(`<span style='color:var(--terminal-dim)'>  ─────────────────────────────────────────────────────────────</span>`),

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   OutputLine,
+  Lang,
   cmdHelp,
   cmdWhoami,
   cmdAbout,
@@ -17,10 +18,11 @@ import {
   cmdEcho,
   cmdOpen,
   cmdTheme,
+  cmdLang,
   cmdNotFound,
   welcomeLines,
 } from "@/lib/commands";
-import { personal } from "@/lib/data";
+import { personal, translations } from "@/lib/data";
 import Boot from "./Boot";
 import { trackEvent } from "@/lib/monitor";
 
@@ -51,7 +53,7 @@ const ALL_COMMANDS = [
   "ls",
   "pwd",
   "theme",
-  "cat about",
+  "lang",
   "clear",
 ];
 
@@ -99,21 +101,33 @@ export default function TerminalPortfolio() {
   const focusInput = useCallback(() => inputRef.current?.focus(), []);
 
   const [theme, setTheme] = useState<string>("matrix");
+  const [lang, setLang] = useState<Lang>("en");
   const [mounted, setMounted] = useState(false);
 
-  // Load theme from localStorage
+  // Load theme and lang from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("terminal-theme");
     if (savedTheme) setTheme(savedTheme);
+
+    const savedLang = localStorage.getItem("terminal-lang") as Lang;
+    if (savedLang && (savedLang === "en" || savedLang === "fr")) {
+      setLang(savedLang);
+    } else {
+      // Auto-detect browser language
+      const browserLang = navigator.language.split("-")[0];
+      if (browserLang === "fr") setLang("fr");
+    }
+
     setMounted(true);
   }, []);
 
-  // Save theme to localStorage
+  // Save theme and lang to localStorage
   useEffect(() => {
     if (mounted) {
       localStorage.setItem("terminal-theme", theme);
+      localStorage.setItem("terminal-lang", lang);
     }
-  }, [theme, mounted]);
+  }, [theme, lang, mounted]);
 
   const appendLines = useCallback((newLines: OutputLine[]) => {
     setLines((prev) => [...prev, ...newLines]);
@@ -132,10 +146,10 @@ export default function TerminalPortfolio() {
 
   const handleBoot = useCallback(() => {
     setBooted(true);
-    const wl = welcomeLines();
+    const wl = welcomeLines(lang);
     streamLines(wl, 55);
     setTimeout(() => inputRef.current?.focus(), wl.length * 55 + 100);
-  }, [streamLines]);
+  }, [streamLines, lang]);
 
   const runCommand = useCallback(
     (raw: string) => {
@@ -156,25 +170,25 @@ export default function TerminalPortfolio() {
 
       switch (cmdLower) {
         case "help":
-          appendLines(cmdHelp());
+          appendLines(cmdHelp(lang));
           break;
         case "whoami":
-          appendLines(cmdWhoami());
+          appendLines(cmdWhoami(lang));
           break;
         case "about":
-          appendLines(cmdAbout());
+          appendLines(cmdAbout(lang));
           break;
         case "skills":
-          appendLines(cmdSkills());
+          appendLines(cmdSkills(lang));
           break;
         case "projects":
-          appendLines(cmdProjects());
+          appendLines(cmdProjects(lang));
           break;
         case "experience":
-          appendLines(cmdExperience());
+          appendLines(cmdExperience(lang));
           break;
         case "contact":
-          appendLines(cmdContact());
+          appendLines(cmdContact(lang));
           break;
         case "social":
           appendLines(cmdSocial());
@@ -190,7 +204,7 @@ export default function TerminalPortfolio() {
               { id: `dl2-${Date.now()}`, html: `  <span style='color:var(--terminal-green)'>✓</span> <span style='color:var(--terminal-muted)'>Download initiated.</span>` },
             ]);
           } else {
-            appendLines(cmdNotFound(fullCmd));
+            appendLines(cmdNotFound(fullCmd, lang));
           }
           break;
         case "theme":
@@ -198,7 +212,12 @@ export default function TerminalPortfolio() {
           if (["matrix", "amber", "modern", "dark"].includes(themeArgs)) {
             setTheme(themeArgs);
           }
-          appendLines(cmdTheme(args));
+          appendLines(cmdTheme(args, theme, lang));
+          break;
+        case "lang":
+          const { output, newLang } = cmdLang(args, lang);
+          if (newLang) setLang(newLang);
+          appendLines(output);
           break;
         case "date":
           appendLines(cmdDate());
@@ -207,7 +226,7 @@ export default function TerminalPortfolio() {
           appendLines(cmdEcho(args));
           break;
         case "open":
-          appendLines(cmdOpen(args));
+          appendLines(cmdOpen(args, lang));
           break;
         case "ls":
           appendLines(cmdLs());
@@ -221,10 +240,10 @@ export default function TerminalPortfolio() {
         case "":
           break;
         default:
-          appendLines(cmdNotFound(fullCmd));
+          appendLines(cmdNotFound(fullCmd, lang));
       }
     },
-    [appendLines, setTheme]
+    [appendLines, setTheme, setLang, theme, lang]
   );
 
   const handleKeyDown = useCallback(
@@ -266,7 +285,7 @@ export default function TerminalPortfolio() {
 
   return (
     <>
-      {!booted && <Boot onComplete={handleBoot} />}
+      {!booted && <Boot onComplete={handleBoot} lang={lang} />}
 
       <div
         className={`flex flex-col w-screen h-screen bg-terminal-bg theme-${theme}`}
@@ -345,9 +364,18 @@ export default function TerminalPortfolio() {
               }}
               className="text-[11px] text-terminal-dim cursor-pointer px-2 py-0.5 border border-terminal-border rounded-sm hover:text-terminal-green hover:border-[#2a2a2a] hover:bg-terminal-bg2 transition-all select-none"
             >
-              {cmd}
+              {cmd === "download cv" ? (lang === "en" ? "download cv" : "télécharger cv") : cmd}
             </button>
           ))}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              runCommand(`lang ${lang === "en" ? "fr" : "en"}`);
+            }}
+            className="text-[11px] text-terminal-cyan font-bold cursor-pointer px-2 py-0.5 border border-terminal-cyan/30 rounded-sm hover:bg-terminal-cyan/10 transition-all select-none"
+          >
+            {lang === "en" ? "FR" : "EN"}
+          </button>
         </div>
       </div>
     </>
