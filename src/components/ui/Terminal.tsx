@@ -24,6 +24,7 @@ import {
 } from "@/lib/commands";
 import { personal, translations } from "@/lib/data";
 import Boot from "./Boot";
+import AsciiBackground from "./AsciiBackground";
 import { trackEvent } from "@/lib/monitor";
 
 const SHORTCUTS = [
@@ -71,9 +72,12 @@ export default function TerminalPortfolio() {
   const [history, setHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);
   const [clock, setClock] = useState("");
+  const [showAscii, setShowAscii] = useState(true);
+  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
 
   const termRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   // Clock
   useEffect(() => {
@@ -118,6 +122,9 @@ export default function TerminalPortfolio() {
       if (browserLang === "fr") setLang("fr");
     }
 
+    const savedAscii = localStorage.getItem("terminal-ascii");
+    if (savedAscii !== null) setShowAscii(savedAscii === "true");
+
     setMounted(true);
   }, []);
 
@@ -126,8 +133,9 @@ export default function TerminalPortfolio() {
     if (mounted) {
       localStorage.setItem("terminal-theme", theme);
       localStorage.setItem("terminal-lang", lang);
+      localStorage.setItem("terminal-ascii", showAscii.toString());
     }
-  }, [theme, lang, mounted]);
+  }, [theme, lang, showAscii, mounted]);
 
   const appendLines = useCallback((newLines: OutputLine[]) => {
     setLines((prev) => [...prev, ...newLines]);
@@ -219,6 +227,18 @@ export default function TerminalPortfolio() {
           if (newLang) setLang(newLang);
           appendLines(output);
           break;
+        case "ascii":
+          const asciiArg = args.trim().toLowerCase();
+          if (asciiArg === "on") {
+            setShowAscii(true);
+            appendLines([{ id: `ascii-${Date.now()}`, html: "  <span style='color:var(--terminal-green)'>✓</span> ASCII background enabled." }]);
+          } else if (asciiArg === "off") {
+            setShowAscii(false);
+            appendLines([{ id: `ascii-${Date.now()}`, html: "  <span style='color:var(--terminal-red)'>✗</span> ASCII background disabled." }]);
+          } else {
+            appendLines([{ id: `ascii-${Date.now()}`, html: lang === "en" ? "  Usage: <span style='color:var(--terminal-cyan)'>ascii &lt;on|off&gt;</span>" : "  Utilisation : <span style='color:var(--terminal-cyan)'>ascii &lt;on|off&gt;</span>" }]);
+          }
+          break;
         case "date":
           appendLines(cmdDate());
           break;
@@ -286,10 +306,13 @@ export default function TerminalPortfolio() {
   return (
     <>
       {!booted && <Boot onComplete={handleBoot} lang={lang} />}
+      <AsciiBackground enabled={showAscii} mousePos={mousePos} />
 
       <div
-        className={`flex flex-col w-screen h-screen bg-terminal-bg theme-${theme}`}
+        ref={mainRef}
+        className={`flex flex-col w-screen h-screen bg-black/40 backdrop-blur-[1px] theme-${theme}`}
         onClick={focusInput}
+        onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
       >
         {/* Titlebar */}
         <div className="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-terminal-bg3 border-b border-terminal-border">
@@ -319,7 +342,7 @@ export default function TerminalPortfolio() {
         </div>
 
         {/* Input row */}
-        <div className="flex-shrink-0 flex items-center terminal-px py-3 border-t border-terminal-border bg-terminal-bg">
+        <div className="flex-shrink-0 flex items-center terminal-px py-3 border-t border-terminal-border bg-black/40">
           <div className="flex items-center">
             <span className="text-terminal-green font-mono text-sm whitespace-nowrap">
               taha@portfolio
@@ -353,7 +376,7 @@ export default function TerminalPortfolio() {
         </div>
 
         {/* Quick command shortcuts */}
-        <div className="flex-shrink-0 flex flex-wrap justify-center gap-2 terminal-px py-2 border-t border-terminal-border bg-[#0c0c0c]">
+        <div className="flex-shrink-0 flex flex-wrap justify-center gap-2 terminal-px py-2 border-t border-terminal-border bg-black/60">
           {SHORTCUTS.map((cmd) => (
             <button
               key={cmd}
