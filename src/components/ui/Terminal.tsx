@@ -25,6 +25,7 @@ import {
 import { personal, translations } from "@/lib/data";
 import Boot from "./Boot";
 import AsciiBackground from "./AsciiBackground";
+import SnakeGame from "./SnakeGame";
 import { trackEvent } from "@/lib/monitor";
 
 const SHORTCUTS = [
@@ -36,6 +37,8 @@ const SHORTCUTS = [
   "contact",
   "download cv",
   "clear",
+  "crt",
+  "snake",
 ];
 
 const ALL_COMMANDS = [
@@ -56,6 +59,8 @@ const ALL_COMMANDS = [
   "theme",
   "lang",
   "clear",
+  "crt",
+  "snake",
 ];
 
 function promptLine(cmd: string): OutputLine {
@@ -73,6 +78,8 @@ export default function TerminalPortfolio() {
   const [histIdx, setHistIdx] = useState(-1);
   const [clock, setClock] = useState("");
   const [showAscii, setShowAscii] = useState(true);
+  const [showCrt, setShowCrt] = useState(false);
+  const [isGameMode, setIsGameMode] = useState(false);
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
 
   const termRef = useRef<HTMLDivElement>(null);
@@ -125,6 +132,9 @@ export default function TerminalPortfolio() {
     const savedAscii = localStorage.getItem("terminal-ascii");
     if (savedAscii !== null) setShowAscii(savedAscii === "true");
 
+    const savedCrt = localStorage.getItem("terminal-crt");
+    if (savedCrt !== null) setShowCrt(savedCrt === "true");
+
     setMounted(true);
   }, []);
 
@@ -134,8 +144,9 @@ export default function TerminalPortfolio() {
       localStorage.setItem("terminal-theme", theme);
       localStorage.setItem("terminal-lang", lang);
       localStorage.setItem("terminal-ascii", showAscii.toString());
+      localStorage.setItem("terminal-crt", showCrt.toString());
     }
-  }, [theme, lang, showAscii, mounted]);
+  }, [theme, lang, showAscii, showCrt, mounted]);
 
   const appendLines = useCallback((newLines: OutputLine[]) => {
     setLines((prev) => [...prev, ...newLines]);
@@ -239,6 +250,22 @@ export default function TerminalPortfolio() {
             appendLines([{ id: `ascii-${Date.now()}`, html: lang === "en" ? "  Usage: <span style='color:var(--terminal-cyan)'>ascii &lt;on|off&gt;</span>" : "  Utilisation : <span style='color:var(--terminal-cyan)'>ascii &lt;on|off&gt;</span>" }]);
           }
           break;
+        case "crt":
+          const crtArg = args.trim().toLowerCase();
+          if (crtArg === "on") {
+            setShowCrt(true);
+            appendLines([{ id: `crt-${Date.now()}`, html: "  <span style='color:var(--terminal-green)'>✓</span> CRT effects enabled." }]);
+          } else if (crtArg === "off") {
+            setShowCrt(false);
+            appendLines([{ id: `crt-${Date.now()}`, html: "  <span style='color:var(--terminal-red)'>✗</span> CRT effects disabled." }]);
+          } else {
+            appendLines([{ id: `crt-${Date.now()}`, html: lang === "en" ? "  Usage: <span style='color:var(--terminal-cyan)'>crt &lt;on|off&gt;</span>" : "  Utilisation : <span style='color:var(--terminal-cyan)'>crt &lt;on|off&gt;</span>" }]);
+          }
+          break;
+        case "snake":
+          setIsGameMode(true);
+          appendLines([{ id: `snake-${Date.now()}`, html: "  <span style='color:var(--terminal-green)'>🐍</span> Launching Snake... (Press ESC to exit)" }]);
+          break;
         case "date":
           appendLines(cmdDate());
           break;
@@ -304,13 +331,23 @@ export default function TerminalPortfolio() {
   );
 
   return (
-    <>
+    <div className={`crt-container h-full w-full ${showCrt ? "crt-enabled" : ""}`}>
       {!booted && <Boot onComplete={handleBoot} lang={lang} />}
       <AsciiBackground enabled={showAscii} mousePos={mousePos} />
 
+      {isGameMode && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <SnakeGame onExit={(score) => {
+            setIsGameMode(false);
+            appendLines([{ id: `game-exit-${Date.now()}`, html: `  <span style='color:var(--terminal-green)'>GAME OVER!</span> Final Score: <span style='color:var(--terminal-yellow)'>${score}</span>` }]);
+            setTimeout(() => inputRef.current?.focus(), 50);
+          }} />
+        </div>
+      )}
+
       <div
         ref={mainRef}
-        className={`flex flex-col w-screen h-screen bg-black/40 backdrop-blur-[1px] theme-${theme}`}
+        className={`flex flex-col w-screen h-screen bg-black/40 backdrop-blur-[1px] theme-${theme} ${showCrt ? "crt-curve crt-screen" : ""}`}
         onClick={focusInput}
         onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
       >
@@ -401,6 +438,6 @@ export default function TerminalPortfolio() {
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
